@@ -1,7 +1,5 @@
 # DeepCool Digital Lite
 
-[![Made with Slint](https://raw.githubusercontent.com/slint-ui/slint/master/logo/MadeWithSlint-logo-whitebg.png)](https://slint.dev/)
-
 A small Rust tray application for the DeepCool CH270 DIGITAL case display.
 It shows CPU or GPU temperature, power, usage, and a secondary metric. MIX
 rotates between the CPU and GPU pages.
@@ -34,6 +32,8 @@ Display settings are stored in `%APPDATA%\DeepCoolDigitalLite`. The
 Task Scheduler and launches the current executable with `--minimized` at logon.
 
 ## License
+
+<a href="https://slint.dev/"><img src="https://raw.githubusercontent.com/slint-ui/slint/master/logo/MadeWithSlint-logo-whitebg.png" alt="Made with Slint" width="120"></a>
 
 Project code is licensed under the [MIT License](LICENSE). Bundled dependency
 licenses are listed in [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
