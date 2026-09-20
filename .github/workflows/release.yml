@@ -52,7 +52,13 @@ jobs:
           $archive = "deepcool-digital-lite-windows-x64.zip"
           $checksum = "$archive.sha256"
 
-          if (gh release view $tag 2>$null) {
+          $savedErrorActionPreference = $ErrorActionPreference
+          $ErrorActionPreference = "SilentlyContinue"
+          gh release view $tag *> $null
+          $releaseExists = $LASTEXITCODE -eq 0
+          $ErrorActionPreference = $savedErrorActionPreference
+
+          if ($releaseExists) {
             gh release upload $tag $archive $checksum --clobber
           } else {
             gh release create $tag $archive $checksum --verify-tag --generate-notes --title "DeepCool Digital Lite $tag"
