@@ -1,0 +1,6 @@
+// Embeds the app icon (used by the tray icon & File Explorer)
+100 ICON "icon.ico"
+
+// Embeds the manifest (id 1, type 24 = RT_MANIFEST) so Windows automatically
+// requires Administrator rights when this .exe is launched.
+1 24 "app.manifest"

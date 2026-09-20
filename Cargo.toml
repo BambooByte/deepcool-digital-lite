@@ -1,0 +1,41 @@
+[package]
+name = "deepcool-digital-lite"
+version = "0.1.0"
+edition = "2021"
+description = "Lightweight Windows controller for the DeepCool CH270 DIGITAL display"
+license = "MIT"
+repository = "https://github.com/BambooByte/deepcool-digital-lite"
+readme = "README.md"
+publish = false
+
+[[bin]]
+name = "deepcool-digital-lite"
+path = "src/bin/lite.rs"
+
+[dependencies]
+hidapi = "2"
+winreg = "0.52"
+slint = { version = "=1.18.0", default-features = false, features = ["std", "backend-winit", "renderer-software", "software-renderer-systemfonts", "system-tray", "raw-window-handle-06", "compat-1-18"] }
+
+[target.'cfg(windows)'.dependencies]
+raw-window-handle = "0.6"
+windows-sys = { version = "0.52", features = [
+    "Win32_Foundation",
+    "Win32_Graphics_Dwm",
+    "Win32_System_Threading",
+    "Win32_System_LibraryLoader",
+    "Win32_System_Services",
+    "Win32_Security",
+    "Win32_UI_WindowsAndMessaging"
+] }
+
+[build-dependencies]
+embed-resource = "2"
+slint-build = "=1.18.0"
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1
+panic = "abort"

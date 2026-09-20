@@ -1,0 +1,291 @@
+import { ComboBox, HorizontalBox, Palette, Switch } from "std-widgets.slint";
+component BlurredComboBox inherits Rectangle {
+    in property <[string]> model <=> combo.model;
+    in property <bool> enabled <=> combo.enabled;
+    in-out property <int> current-index <=> combo.current-index;
+    in property <string> accessible-name;
+    callback committed();
+
+    min-width: combo.min-width;
+    min-height: combo.min-height;
+    horizontal-stretch: 1;
+    vertical-stretch: 0;
+    background: transparent;
+
+    combo := ComboBox {
+        width: 100%;
+        height: 100%;
+        accessible-label: root.accessible-name;
+        selected => {
+            root.committed();
+            clear-focus-timer.running = true;
+        }
+    }
+
+    clear-focus-timer := Timer {
+        interval: 1ms;
+        triggered => {
+            self.running = false;
+            combo.clear-focus();
+        }
+    }
+}
+
+component SettingRow inherits Rectangle {
+    height: 64px;
+    border-radius: 4px;
+    background: Palette.control-background;
+    border-width: 1px;
+    border-color: Palette.foreground.with-alpha(0.12);
+
+    HorizontalBox {
+        padding-left: 16px;
+        padding-right: 16px;
+        padding-top: 16px;
+        padding-bottom: 16px;
+        spacing: 8px;
+        @children
+    }
+}
+
+component SettingIcon inherits Text {
+    in property <string> glyph;
+
+    text: root.glyph;
+    width: 20px;
+    font-family: "Segoe Fluent Icons";
+    font-size: 18px;
+    color: Palette.foreground;
+    horizontal-alignment: center;
+    vertical-alignment: center;
+}
+
+component HardwareTable inherits Rectangle {
+    in property <string> processor;
+    in property <string> memory;
+    in property <string> graphics;
+
+    height: 128px;
+    border-radius: 4px;
+    background: Palette.control-background;
+    border-width: 1px;
+    border-color: Palette.foreground.with-alpha(0.12);
+
+    GridLayout {
+        padding: 16px;
+        spacing: 8px;
+        Row {
+            Text { text: "Processor"; width: 112px; font-weight: 400; color: Palette.foreground; vertical-alignment: center; }
+            Text { text: root.processor; font-weight: 400; color: Palette.foreground.with-alpha(0.65); overflow: elide; vertical-alignment: center; }
+        }
+        Row {
+            Text { text: "Installed RAM"; width: 112px; font-weight: 400; color: Palette.foreground; vertical-alignment: center; }
+            Text { text: root.memory; font-weight: 400; color: Palette.foreground.with-alpha(0.65); overflow: elide; vertical-alignment: center; }
+        }
+        Row {
+            Text { text: "Graphics Card"; width: 112px; font-weight: 400; color: Palette.foreground; vertical-alignment: center; }
+            Text { text: root.graphics; font-weight: 400; color: Palette.foreground.with-alpha(0.65); overflow: elide; vertical-alignment: center; }
+        }
+    }
+}
+
+component NavigationItem inherits Rectangle {
+    in property <string> glyph;
+    in property <string> label;
+    in property <bool> selected;
+    callback clicked();
+
+    height: 40px;
+    background: transparent;
+
+    Rectangle {
+        width: root.width;
+        height: root.height;
+        border-radius: 4px;
+        background: root.selected ? Palette.foreground.with-alpha(0.05) :
+            touch.has-hover ? Palette.foreground.with-alpha(0.04) : transparent;
+
+        HorizontalLayout {
+            padding-left: 8px;
+            padding-right: 8px;
+            spacing: 8px;
+            alignment: start;
+            Text {
+                text: root.glyph;
+                font-family: "Segoe Fluent Icons";
+                font-size: 20px;
+                color: Palette.foreground;
+                horizontal-alignment: left;
+                vertical-alignment: center;
+            }
+            Text {
+                text: root.label;
+                font-size: 14px;
+                color: Palette.foreground;
+                font-weight: 400;
+                horizontal-alignment: left;
+                vertical-alignment: center;
+            }
+        }
+
+        Rectangle {
+            x: 0px;
+            y: (parent.height - self.height) / 2;
+            width: 3px;
+            height: root.selected ? 16px : 0px;
+            border-radius: 2px;
+            background: Palette.accent-background;
+        }
+    }
+    touch := TouchArea { clicked => { root.clicked(); } }
+}
+
+export component LiteWindow inherits Window {
+    title: "DeepCool Digital Lite";
+    preferred-width: 760px;
+    preferred-height: 600px;
+    min-width: 640px;
+    min-height: 480px;
+    background: Palette.background;
+    default-font-size: 14px;
+
+    in property <string> status-message: "Connecting to case display...";
+    in property <string> error-message: "";
+    in property <string> cpu-name: "Detecting...";
+    in property <string> gpu-name: "Detecting...";
+    in property <string> memory-info: "Detecting...";
+    in-out property <int> selected-mode: 0;
+    in-out property <int> selected-interval: 5;
+    in-out property <int> selected-detail: 0;
+    in-out property <bool> startup-enabled: false;
+    in-out property <int> active-page: 1;
+    callback mode-changed(int);
+    callback interval-changed(int);
+    callback detail-changed(int);
+    callback startup-changed(bool);
+
+    HorizontalLayout {
+        spacing: 0px;
+        Rectangle {
+            width: 200px;
+            background: Palette.alternate-background;
+
+            VerticalLayout {
+                padding: 3px;
+                spacing: 3px;
+                NavigationItem {
+                    glyph: "\u{E977}";
+                    label: "This PC";
+                    selected: root.active-page == 0;
+                    clicked => { root.active-page = 0; }
+                }
+                NavigationItem {
+                    glyph: "\u{E7F4}";
+                    label: "Case Display";
+                    selected: root.active-page == 1;
+                    clicked => { root.active-page = 1; }
+                }
+                Rectangle { vertical-stretch: 1; }
+                NavigationItem {
+                    glyph: "\u{E713}";
+                    label: "Settings";
+                    selected: root.active-page == 2;
+                    clicked => { root.active-page = 2; }
+                }
+            }
+        }
+
+        if root.active-page == 0 : VerticalLayout {
+            padding: 24px;
+            spacing: 3px;
+            Text { text: "This PC"; height: 32px; font-size: 20px; font-weight: 600; color: Palette.foreground; vertical-alignment: center; }
+            Text { text: "Hardware detected on this computer."; height: 20px; font-size: 14px; color: Palette.foreground.with-alpha(0.65); vertical-alignment: center; }
+            HardwareTable {
+                processor: root.cpu-name;
+                memory: root.memory-info;
+                graphics: root.gpu-name;
+            }
+            Rectangle { vertical-stretch: 1; }
+        }
+
+        if root.active-page == 1 : VerticalLayout {
+            padding: 24px;
+            spacing: 3px;
+            Text { text: "Case Display"; height: 32px; font-size: 20px; font-weight: 600; color: Palette.foreground; vertical-alignment: center; }
+            Text { text: "Choose what appears on the case display."; height: 20px; font-size: 14px; color: Palette.foreground.with-alpha(0.65); vertical-alignment: center; }
+            SettingRow {
+                SettingIcon { glyph: "\u{E8AB}"; }
+                Text { text: "Mode Selection"; color: Palette.foreground; vertical-alignment: center; }
+                BlurredComboBox {
+                    width: 160px;
+                    horizontal-stretch: 0;
+                    model: ["CPU", "GPU", "MIX"];
+                    current-index <=> root.selected-mode;
+                    accessible-name: "Mode Selection";
+                    committed => {
+                        root.mode-changed(root.selected-mode);
+                    }
+                }
+            }
+            SettingRow {
+                SettingIcon { glyph: "\u{E917}"; }
+                Text { text: "Switch every"; color: Palette.foreground; vertical-alignment: center; }
+                BlurredComboBox {
+                    width: 160px;
+                    horizontal-stretch: 0;
+                    model: ["5s", "7s"];
+                    current-index: root.selected-interval == 7 ? 1 : 0;
+                    enabled: root.selected-mode == 2;
+                    accessible-name: "Switch every";
+                    committed => {
+                        root.selected-interval = self.current-index == 1 ? 7 : 5;
+                        root.interval-changed(root.selected-interval);
+                    }
+                }
+            }
+            SettingRow {
+                SettingIcon { glyph: "\u{E9E9}"; }
+                Text { text: "Secondary Metric"; color: Palette.foreground; vertical-alignment: center; }
+                BlurredComboBox {
+                    width: 160px;
+                    horizontal-stretch: 0;
+                    model: ["Fan Speed", "Clock Speed", "Auto Rotate"];
+                    current-index <=> root.selected-detail;
+                    accessible-name: "Secondary Metric";
+                    committed => {
+                        root.detail-changed(root.selected-detail);
+                    }
+                }
+            }
+            if root.error-message != "" : Text { text: root.error-message; color: Palette.foreground; wrap: word-wrap; }
+            Rectangle { vertical-stretch: 1; }
+        }
+
+        if root.active-page == 2 : VerticalLayout {
+            padding: 24px;
+            spacing: 3px;
+            Text { text: "Settings"; height: 32px; font-size: 20px; font-weight: 600; color: Palette.foreground; vertical-alignment: center; }
+            Text { text: "Configure how the app starts and runs."; height: 20px; font-size: 14px; color: Palette.foreground.with-alpha(0.65); vertical-alignment: center; }
+            SettingRow {
+                Text { text: "Start with Windows"; color: Palette.foreground; vertical-alignment: center; }
+                Switch {
+                    checked <=> root.startup-enabled;
+                    toggled => { root.startup-changed(self.checked); }
+                }
+            }
+            Rectangle { vertical-stretch: 1; }
+        }
+    }
+}
+
+export component LiteTray inherits SystemTrayIcon {
+    icon: @image-url("../assets/lite-icon.png");
+    tooltip: "DeepCool Digital Lite";
+    callback open-settings();
+    callback exit-app();
+    clicked => { open-settings(); }
+    Menu {
+        MenuItem { title: "Open settings"; activated => { open-settings(); } }
+        MenuItem { title: "Exit"; activated => { exit-app(); } }
+    }
+}
