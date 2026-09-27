@@ -27,6 +27,8 @@ slint::include_modules!();
 const VID: u16 = 0x3633;
 const PID: u16 = 0x0016;
 const TASK_NAME: &str = "DeepCoolDigitalLite";
+const DISPLAY_SERVICE_NAME: &str = "Deep Cool Display Service";
+const HELPER_SERVICE_NAME: &str = "Deep Cool Helper Service";
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const INSTANCE_MUTEX: &str = "Local\\DeepCoolDigitalLite";
 
@@ -200,6 +202,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let Some(_instance) = SingleInstance::acquire(INSTANCE_MUTEX)? else {
         return Ok(());
     };
+    let start_minimized = std::env::args().any(|arg| arg == "--minimized");
+    if start_minimized {
+        stop_official_services();
+    }
     // Recreate the software-rendered window after hiding it to the tray.
     std::env::set_var("SLINT_DESTROY_WINDOW_ON_HIDE", "1");
     let initial_mode = load_mode();
@@ -306,7 +312,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         },
     );
     tray.show()?;
-    if !std::env::args().any(|arg| arg == "--minimized") {
+    if !start_minimized {
         ui.show()?;
         schedule_native_title_bar(&ui);
     }
@@ -398,6 +404,16 @@ fn set_startup(enabled: bool) -> io::Result<()> {
     }
 }
 
+fn stop_official_services() {
+    use std::os::windows::process::CommandExt;
+    for name in [DISPLAY_SERVICE_NAME, HELPER_SERVICE_NAME] {
+        let _ = Command::new("sc")
+            .args(["stop", name])
+            .creation_flags(CREATE_NO_WINDOW)
+            .output();
+    }
+}
+
 fn set_status(status: &Mutex<String>, message: impl Into<String>) {
     if let Ok(mut current) = status.lock() {
         *current = message.into();
@@ -405,10 +421,7 @@ fn set_status(status: &Mutex<String>, message: impl Into<String>) {
 }
 
 fn official_service_running() -> bool {
-    let name: Vec<u16> = "Deep Cool Display Service"
-        .encode_utf16()
-        .chain(Some(0))
-        .collect();
+    let name: Vec<u16> = DISPLAY_SERVICE_NAME.encode_utf16().chain(Some(0)).collect();
     unsafe {
         let manager = OpenSCManagerW(std::ptr::null(), std::ptr::null(), SC_MANAGER_CONNECT);
         if manager == 0 {
