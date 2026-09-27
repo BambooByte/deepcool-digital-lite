@@ -29,6 +29,7 @@ const PID: u16 = 0x0016;
 const TASK_NAME: &str = "DeepCoolDigitalLite";
 const DISPLAY_SERVICE_NAME: &str = "Deep Cool Display Service";
 const HELPER_SERVICE_NAME: &str = "Deep Cool Helper Service";
+const INTERVALS: [u8; 4] = [5, 7, 9, 11];
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 const INSTANCE_MUTEX: &str = "Local\\DeepCoolDigitalLite";
 
@@ -340,13 +341,14 @@ fn save_mode(mode: Mode) -> io::Result<()> {
     fs::write(path, mode.label())
 }
 fn load_interval() -> u8 {
-    match fs::read_to_string(settings_path("interval.txt"))
-        .as_deref()
-        .map(str::trim)
-    {
-        Ok("7") => 7,
-        _ => 5,
-    }
+    fs::read_to_string(settings_path("interval.txt"))
+        .ok()
+        .and_then(|value| parse_interval(&value))
+        .unwrap_or(INTERVALS[0])
+}
+fn parse_interval(value: &str) -> Option<u8> {
+    let value = value.trim().parse().ok()?;
+    INTERVALS.contains(&value).then_some(value)
 }
 fn save_interval(seconds: u8) -> io::Result<()> {
     let path = settings_path("interval.txt");
@@ -710,7 +712,7 @@ mod tests {
 
     #[test]
     fn mix_and_cpu_detail_follow_selected_interval() {
-        for interval in [5, 7] {
+        for interval in INTERVALS {
             let interval = interval as u64;
             assert_eq!(page_for(Mode::Mix, interval - 1, interval as u8), Mode::Cpu);
             assert_eq!(page_for(Mode::Mix, interval, interval as u8), Mode::Gpu);
@@ -729,6 +731,17 @@ mod tests {
             detail_for(Mode::Cpu, CpuDetail::Auto, 5, 7),
             CpuDetail::Clock
         );
+    }
+
+    #[test]
+    fn interval_accepts_available_options() {
+        assert_eq!(parse_interval("5"), Some(5));
+        assert_eq!(parse_interval("7"), Some(7));
+        assert_eq!(parse_interval("9\n"), Some(9));
+        assert_eq!(parse_interval("11"), Some(11));
+        assert_eq!(parse_interval("4"), None);
+        assert_eq!(parse_interval("13"), None);
+        assert_eq!(parse_interval("invalid"), None);
     }
 
     #[test]

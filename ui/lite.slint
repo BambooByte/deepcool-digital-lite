@@ -233,12 +233,14 @@ export component LiteWindow inherits Window {
                 BlurredComboBox {
                     width: 160px;
                     horizontal-stretch: 0;
-                    model: ["5s", "7s"];
-                    current-index: root.selected-interval == 7 ? 1 : 0;
+                    model: ["5s", "7s", "9s", "11s"];
+                    current-index: root.selected-interval == 7 ? 1 :
+                        root.selected-interval == 9 ? 2 :
+                        root.selected-interval == 11 ? 3 : 0;
                     enabled: root.selected-mode == 2;
                     accessible-name: "Switch every";
                     committed => {
-                        root.selected-interval = self.current-index == 1 ? 7 : 5;
+                        root.selected-interval = self.current-index * 2 + 5;
                         root.interval-changed(root.selected-interval);
                     }
                 }
