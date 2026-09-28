@@ -43,6 +43,17 @@ compatibility cannot be guaranteed.
 GPU power readings are currently unavailable, so GPU and MIX modes display
 `0 W`. Support may be added in a future update.
 
+## Prerequisites
+
+- Windows 10 or Windows 11 (64-bit)
+- [PawnIO](https://pawnio.eu/) for low-level sensor access, particularly
+  motherboard fan-speed readings
+- Administrator permission when installing PawnIO
+
+If Fan Control or a recent version of LibreHardwareMonitor is already
+installed, PawnIO may already be present and does not need to be installed
+again.
+
 ## Runtime package
 
 Use the complete `dist` folder. `deepcool-digital-lite.exe` requires the

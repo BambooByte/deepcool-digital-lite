@@ -38,6 +38,15 @@ DeepCool Digital Lite 目前仅在 **DeepCool CH270 DIGITAL** 机箱屏幕上测
 目前无法正常读取 GPU 功耗，因此 GPU 和 MIX 模式会显示 `0 W`。后续有时间时
 会再更新支持。
 
+## 运行要求
+
+- Windows 10 或 Windows 11（64 位）
+- 读取主板风扇转速等底层传感器需要安装 [PawnIO](https://pawnio.eu/)
+- 安装 PawnIO 时需要管理员权限
+
+如果电脑已经安装 Fan Control 或较新版本的 LibreHardwareMonitor，PawnIO
+可能已经存在，无需重复安装。
+
 ## 运行包
 
 请使用完整的 `dist` 文件夹。`deepcool-digital-lite.exe` 需要旁边附带的
